@@ -57,3 +57,5 @@
 build
 .travis.yml
 .vscode
+search
+html

@@ -30,8 +30,8 @@ void setup()
     if (client.connect("arduinoClient"))
     {
         Serial.println("MQTT Verbindung erfolgreich");
-        client.subscribe("sensors");
-        client.publish("sensors", "erste Verbindung");
+        client.subscribe(listenTopic);
+        client.publish(listenTopic, "Verbindung steht");
     }
     else
     {
@@ -51,8 +51,8 @@ void loop()
         if (client.connect("arduinoClient"))
         {
             Serial.println("MQTT wiederhergestellt");
-            client.subscribe("sensors");
-            client.publish("Wetter", "neue Verbindung");
+            client.subscribe(listenTopic);
+            client.publish(publishTopic, "neue Verbindung");
         }
     }
 }
@@ -61,7 +61,7 @@ void pupblishSensors()
 {
     snprintf(msg, msgLength, "{\"Luftdruck\":%.2f,\"Temperatur\":%.2f,\"Luftfeuchte\":%.2f}", bmp.readPressure(), bmp.readTemperature(), bmp.readHumidity());
     Serial.println(msg);
-    client.publish("wetter/daten", msg);
+    client.publish(publishTopic, msg);
     Serial.println("Sensordaten gesendet");
 }
 
@@ -103,12 +103,9 @@ void callback(char *topic, byte *payload, unsigned int length)
     byte *p = (byte *)malloc(length);
     // Copy the payload to the new buffer
     memcpy(p, payload, length);
-    if (strcasecmp(topic, "wetter") == 0)
+    if (strcasecmp(topic, listenTopic) == 0)
     { //anpassen
         pupblishSensors();
-    }
-    else if (strcasecmp(topic, "reset") == 0)
-    {
     }
     // Free the memory
     free(p);

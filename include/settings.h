@@ -1,7 +1,7 @@
 /**
  * @file settings.h
  * @author Pingoin (p.drente@gmx.de)
- * @brief Gesammelte Eisntellungen
+ * @brief Gesammelte Einstellungen
  * @version 0.1
  * @date 2019-08-25
  * 
@@ -11,7 +11,7 @@
 /**
  * @brief Netzwerk SSID
  */
-#define SSID  "Brokkoli_Extrem"
+#define SSID "Brokkoli_Extrem"
 /**
  * @brief WPA-Passwort
  * 
@@ -23,7 +23,7 @@
  * 
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
-#define MQTT_BROKER 192,168,178,110
+#define MQTT_BROKER 192, 168, 178, 110
 
 /**
  * @brief Statische IP des MCU
@@ -31,25 +31,35 @@
  * Wenn DHCP-Benutzt wird bitte auskommentieren
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
-#define staticIP 192,168,178,199
+#define staticIP 192, 168, 178, 199
 /**
  * @brief Gateway des MCU
  * 
  * Wenn DHCP-Benutzt wird bitte auskommentieren
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
-#define staticGateway 192,168,178,1
+#define staticGateway 192, 168, 178, 1
 /**
  * @brief Subnetzsmaske des MCU
  * 
  * Wenn DHCP-Benutzt wird bitte auskommentieren
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 255,255,255,0)
  */
-#define staticSubnet 255,255,255,0
+#define staticSubnet 255, 255, 255, 0
 /**
  * @brief DNS-SeverIP des MCU
  * 
  * Wenn DHCP-Benutzt wird bitte auskommentieren
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
-#define staticDNS 192,178,168,1
+#define staticDNS 192, 178, 168, 1
+/**
+ * @brief das MQTT-Topic auf das gewartet wird
+ * 
+ */
+#define listenTopic "sensors/BME280"
+/**
+ * @brief MQTT-Topic, in dem die Daten veröffentlicht werden
+ * 
+ */
+#define publishTopic "wetter/daten"

@@ -50,7 +50,7 @@ char msg[msgLength];
  * @param payload Inhalt der Nachricht
  * @param length Länge der Nachricht
  */
-void callback(char* topic, byte* payload, unsigned int length);
+void callback(char *topic, byte *payload, unsigned int length);
 /**
  * @brief Die Sensordaten werden ausgelesen und ausgegeben
  * 
