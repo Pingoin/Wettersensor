@@ -10,33 +10,44 @@
  */
 #include "main.h"
 #include "settings.h"
+
 /**
  * @brief Startfunktion
  * 
  */
 void setup()
 {
-    client.disconnect();                            //eventuell vorhandene Alte Verbindung löschen
+    client.disconnect(); //eventuell vorhandene Alte Verbindung löschen
     Serial.begin(115200);
-    setup_wifi();                                   //Wlan Starten
+    setup_wifi(); //Wlan Starten
     client.setServer(IPAddress(MQTT_BROKER), 1883);
     client.setCallback(callback);
-    if (!bme.begin(bme280I2C))
+    Wire.begin();
+   if (!bme.begin(bme280I2C))
     {
         Serial.println("Could not find a valid BME280 sensor, check wiring!");
         while (1)
             ;
     }
-    if (client.connect("arduinoClient"))
+    if (client.connect("Wetterstation"))
     {
         Serial.println("MQTT Verbindung erfolgreich");
+        
+#ifndef sleepTime
         client.subscribe(listenTopic);
         client.publish(listenTopic, "Verbindung steht");
+#endif
     }
     else
     {
         Serial.println("MQTT Verbindung nicht erfogreich");
     }
+#ifdef sleepTime
+    publishSensors();
+    delay(100);
+    ESP.deepSleep(sleepTime);
+    delay(100);
+#endif
 }
 /**
  * @brief Schleifenfunktion
@@ -44,6 +55,7 @@ void setup()
  */
 void loop()
 {
+#ifndef sleepTime
     if (!client.loop())
     {
         Serial.println("MQTT Abgebrochen");
@@ -55,11 +67,14 @@ void loop()
             client.publish(publishTopic, "neue Verbindung");
         }
     }
+#endif
 }
 
-void pupblishSensors()
+void publishSensors()
 {
     snprintf(msg, msgLength, "{\"Luftdruck\":%.2f,\"Temperatur\":%.2f,\"Luftfeuchte\":%.2f}", bme.readPressure(), bme.readTemperature(), bme.readHumidity());
+    Serial.println(client.state());
+    Serial.println(publishTopic);
     client.publish(publishTopic, msg);
     Serial.println("Sensordaten gesendet:");
     Serial.println(msg);
@@ -104,7 +119,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     memcpy(p, payload, length);
     if (strcasecmp(topic, listenTopic) == 0)
     { //anpassen
-        pupblishSensors();
+        publishSensors();
     }
     // Free the memory
     free(p);

@@ -31,7 +31,7 @@
  * Wenn DHCP-Benutzt wird bitte auskommentieren
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
-#define staticIP 192, 168, 178, 199
+#define staticIP 192, 168, 178, 188
 /**
  * @brief Gateway des MCU
  * 
@@ -69,3 +69,8 @@
  * 
  */
 #define bme280I2C 0x77
+/**
+ * @brief 
+ * 
+ */
+#define sleepTime 5e6

@@ -54,11 +54,15 @@ void callback(char *topic, byte *payload, unsigned int length);
  * @brief Die Sensordaten werden ausgelesen und ausgegeben
  * 
  */
-void pupblishSensors();
+void publishSensors();
 /**
  * @brief Start und einstellung der WLan-Verbindung
  * 
  */
 void setup_wifi();
-
+/**
+ * @brief Erzwingt auslesen der Sensoren
+ * 
+ */
+void bmeForceRead();
 #endif
