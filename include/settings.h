@@ -63,3 +63,9 @@
  * 
  */
 #define publishTopic "wetter/daten"
+
+/**
+ * @brief i2CAdresse des BME280
+ * 
+ */
+#define bme280I2C 0x77

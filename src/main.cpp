@@ -16,12 +16,12 @@
  */
 void setup()
 {
-    client.disconnect();
+    client.disconnect();                            //eventuell vorhandene Alte Verbindung löschen
     Serial.begin(115200);
-    setup_wifi();
+    setup_wifi();                                   //Wlan Starten
     client.setServer(IPAddress(MQTT_BROKER), 1883);
     client.setCallback(callback);
-    if (!bmp.begin())
+    if (!bme.begin(bme280I2C))
     {
         Serial.println("Could not find a valid BME280 sensor, check wiring!");
         while (1)
@@ -59,10 +59,10 @@ void loop()
 
 void pupblishSensors()
 {
-    snprintf(msg, msgLength, "{\"Luftdruck\":%.2f,\"Temperatur\":%.2f,\"Luftfeuchte\":%.2f}", bmp.readPressure(), bmp.readTemperature(), bmp.readHumidity());
-    Serial.println(msg);
+    snprintf(msg, msgLength, "{\"Luftdruck\":%.2f,\"Temperatur\":%.2f,\"Luftfeuchte\":%.2f}", bme.readPressure(), bme.readTemperature(), bme.readHumidity());
     client.publish(publishTopic, msg);
-    Serial.println("Sensordaten gesendet");
+    Serial.println("Sensordaten gesendet:");
+    Serial.println(msg);
 }
 
 void setup_wifi()
@@ -92,7 +92,6 @@ void setup_wifi()
     Serial.println(WiFi.localIP());
 }
 
-// Callback function
 void callback(char *topic, byte *payload, unsigned int length)
 {
     // In order to republish this payload, a copy must be made
