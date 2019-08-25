@@ -1,0 +1,55 @@
+/**
+ * @file settings.h
+ * @author Pingoin (p.drente@gmx.de)
+ * @brief Gesammelte Eisntellungen
+ * @version 0.1
+ * @date 2019-08-25
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
+/**
+ * @brief Netzwerk SSID
+ */
+#define SSID  "Brokkoli_Extrem"
+/**
+ * @brief WPA-Passwort
+ * 
+ */
+#define PSK "1123581321345589144233"
+
+/**
+ * @brief Adresse des MQTT-Brokers
+ * 
+ * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
+ */
+#define MQTT_BROKER 192,168,178,110
+
+/**
+ * @brief Statische IP des MCU
+ * 
+ * Wenn DHCP-Benutzt wird bitte auskommentieren
+ * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
+ */
+#define staticIP 192,168,178,199
+/**
+ * @brief Gateway des MCU
+ * 
+ * Wenn DHCP-Benutzt wird bitte auskommentieren
+ * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
+ */
+#define staticGateway 192,168,178,1
+/**
+ * @brief Subnetzsmaske des MCU
+ * 
+ * Wenn DHCP-Benutzt wird bitte auskommentieren
+ * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 255,255,255,0)
+ */
+#define staticSubnet 255,255,255,0
+/**
+ * @brief DNS-SeverIP des MCU
+ * 
+ * Wenn DHCP-Benutzt wird bitte auskommentieren
+ * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
+ */
+#define staticDNS 192,178,168,1
