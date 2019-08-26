@@ -19,7 +19,7 @@
  * @brief maximale Länge des Strings für den Nachrichtenaustausch
  * 
  */
-#define msgLength 70
+#define msgLength 80
 /**
  * @brief Sensorklasse des BME280
  * 
@@ -55,6 +55,17 @@ void callback(char *topic, byte *payload, unsigned int length);
  * 
  */
 void publishSensors();
+
+/**
+ * @brief Sendet einen Wert mit einheit und prefix ins MQTT
+ * 
+ * @param description Bezeichnung der Größe, die gesendet werden soll
+ * @param value der Wert (gekürzt um den prefix (z.B.: 1013 bei 1013 hPa))
+ * @param prefix der Prefix als float (100 bei hPa)
+ * @param unit die einheit ohne prefix (Pa)
+ */
+void publishValue(char* description,float value,float prefix,char* unit);
+
 /**
  * @brief Start und einstellung der WLan-Verbindung
  * 

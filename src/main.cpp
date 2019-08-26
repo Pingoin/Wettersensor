@@ -72,11 +72,17 @@ void loop()
 
 void publishSensors()
 {
-    snprintf(msg, msgLength, "{\"Luftdruck\":%.2f,\"Temperatur\":%.2f,\"Luftfeuchte\":%.2f}", bme.readPressure(), bme.readTemperature(), bme.readHumidity());
-    Serial.println(client.state());
-    Serial.println(publishTopic);
+    float spannung=analogRead(A0)/1.016*4.2/1024;
+    publishValue((char *) "Luftdruck",bme.readPressure()/100,100,(char *) "Pa");
+    publishValue((char *) "Temperatur",bme.readTemperature(),1,(char *) "°C");// \370 entspricht dem Gradzeichen
+    publishValue((char *) "Luftfeuchte",bme.readHumidity(),1,(char *) "%");
+    publishValue((char *) "Batterie",spannung,1,(char *) "V");
+}
+
+
+void publishValue(char* description,float value,float prefix,char* unit){
+    snprintf(msg, msgLength, "{\"%s\":{\"v\":%.4f,\"p\":%e,\"u\":\"%s\"}}",description,value,prefix,unit); 
     client.publish(publishTopic, msg);
-    Serial.println("Sensordaten gesendet:");
     Serial.println(msg);
 }
 

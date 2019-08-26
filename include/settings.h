@@ -8,10 +8,12 @@
  * @copyright Copyright (c) 2019
  * 
  */
+
 /**
  * @brief Netzwerk SSID
  */
 #define SSID "Brokkoli_Extrem"
+
 /**
  * @brief WPA-Passwort
  * 
@@ -32,6 +34,7 @@
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
 #define staticIP 192, 168, 178, 188
+
 /**
  * @brief Gateway des MCU
  * 
@@ -39,6 +42,7 @@
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
 #define staticGateway 192, 168, 178, 1
+
 /**
  * @brief Subnetzsmaske des MCU
  * 
@@ -46,6 +50,7 @@
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 255,255,255,0)
  */
 #define staticSubnet 255, 255, 255, 0
+
 /**
  * @brief DNS-SeverIP des MCU
  * 
@@ -53,11 +58,13 @@
  * Angabe in den Byte-Gruppen getrennt durch komma (z.B.: 192,168,178,111)
  */
 #define staticDNS 192, 178, 168, 1
+
 /**
  * @brief das MQTT-Topic auf das gewartet wird
  * 
  */
 #define listenTopic "sensors/BME280"
+
 /**
  * @brief MQTT-Topic, in dem die Daten veröffentlicht werden
  * 
@@ -69,8 +76,11 @@
  * 
  */
 #define bme280I2C 0x77
+
 /**
- * @brief 
+ * @brief Zeit zwischen den Sendungen in Microsekunden
  * 
+ * angabe in minuten*60e6 möglich (z.B.: 5*60e6)
  */
-#define sleepTime 5e6
+#define sleepTime 5*60e6
+
