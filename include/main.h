@@ -50,7 +50,7 @@ char msg[msgLength];
  * @param payload Inhalt der Nachricht
  * @param length Länge der Nachricht
  */
-void callback(char *topic, byte *payload, unsigned int length);
+void callback(char* topic, byte* payload, unsigned int length);
 /**
  * @brief Die Sensordaten werden ausgelesen und ausgegeben
  * 
@@ -65,7 +65,7 @@ void publishSensors();
  * @param prefix der Prefix als float (100 bei hPa)
  * @param unit die einheit ohne prefix (Pa)
  */
-void publishValue(char *  description,float value,float prefix,char *  unit);
+void publishValue(char* description,float value,float prefix,int width,int prec,char* unit);
 
 /**
  * @brief Sendet einen Wert mit einheit und prefix ins MQTT
@@ -75,7 +75,7 @@ void publishValue(char *  description,float value,float prefix,char *  unit);
  * @param prefix der Prefix als float (100 bei hPa)
  * @param unit die einheit ohne prefix (Pa)
  */
-void publishValue(char * description,float value,float prefix,char *  unit,char *  topic);
+void publishValue(char* description,float value,float prefix,int width,int prec,char* unit,char* topic);
 
 /**
  * @brief Start und einstellung der WLan-Verbindung
