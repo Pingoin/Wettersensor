@@ -20,34 +20,40 @@ void setup()
     client.disconnect(); //eventuell vorhandene Alte Verbindung löschen
     Serial.begin(115200);
     setup_wifi(); //Wlan Starten
-    client.setServer(IPAddress(MQTT_BROKER), 1883);
-    client.setCallback(callback);
+    client.setServer(IPAddress(MQTT_BROKER), 1883); //MQTT-Server definieren
+    client.setCallback(callback); //Funktion definieren, die aufgerufen wird, wenn eine abbonierte nachricht ankommt
     Wire.begin();
    if (!bme.begin(bme280I2C))
     {
-        Serial.println("Could not find a valid BME280 sensor, check wiring!");
+        //Serial.println("Could not find a valid BME280 sensor, check wiring!");
         while (1)
             ;
     }
-    if (client.connect("Wetterstation"))
+    if (client.connect(hostName))
     {
-        Serial.println("MQTT Verbindung erfolgreich");
-        
-#ifndef sleepTime
+        //Serial.println("MQTT Verbindung erfolgreich");
         client.subscribe(listenTopic);
-        client.publish(listenTopic, "Verbindung steht");
-#endif
+        publishValue((char *) "Chip-ID",(float) ESP.getChipId(),1,(char *) "-",(char *) listenTopic);
+        publishValue((char *) "CPU-Freq",(float) ESP.getCpuFreqMHz(),1,(char *) "MHz",(char *) listenTopic);
+        publishValue((char *) "Sketch-Size",(float) ESP.getSketchSize(),1024,(char *) "Byte",(char *) listenTopic);
+        publishValue((char *) "Free-Sketch-Size",(float) ESP.getFreeSketchSpace(),1024,(char *) "Byte",(char *) listenTopic);
+        publishValue((char *) "Sketch-Verhaeltnis", ESP.getSketchSize()/( ESP.getSketchSize()+ESP.getFreeSketchSpace()),1,(char *) "%",(char *) listenTopic);
     }
     else
     {
-        Serial.println("MQTT Verbindung nicht erfogreich");
+        //Serial.println("MQTT Verbindung nicht erfogreich");
     }
-#ifdef sleepTime
+    // Port defaults to 8266
+    // ArduinoOTA.setPort(8266);
+ 
+    // Hostname defaults to esp8266-[ChipID]
+    ArduinoOTA.setHostname(hostName);
+ 
+    // No authentication by default
+    ArduinoOTA.setPassword((const char *) hostName);
+ 
+    ArduinoOTA.begin();
     publishSensors();
-    delay(100);
-    ESP.deepSleep(sleepTime);
-    delay(100);
-#endif
 }
 /**
  * @brief Schleifenfunktion
@@ -55,46 +61,54 @@ void setup()
  */
 void loop()
 {
-#ifndef sleepTime
     if (!client.loop())
     {
-        Serial.println("MQTT Abgebrochen");
+        //Serial.println("MQTT Abgebrochen");
         delay(5000);
-        if (client.connect("arduinoClient"))
+        if (client.connect(hostName))
         {
-            Serial.println("MQTT wiederhergestellt");
+            //Serial.println("MQTT wiederhergestellt");
             client.subscribe(listenTopic);
-            client.publish(publishTopic, "neue Verbindung");
+            client.publish(listenTopic,"Verbindung wiederhergestellt");
         }
     }
-#endif
+    ArduinoOTA.handle();
+
+    unsigned long currentMillis = millis();
+    // if enough millis have elapsed
+    if (currentMillis - previousMillis[0] >= sleepTime){
+        publishSensors();
+        previousMillis[0]=currentMillis;
+    }
 }
 
 void publishSensors()
 {
     float spannung=analogRead(A0)*0.004883;
-
-
-    publishValue((char *) "Luftdruck",bme.readPressure()/100,100,(char *) "Pa");
-    publishValue((char *) "Temperatur",bme.readTemperature(),1,(char *) "°C");// \370 entspricht dem Gradzeichen
+    publishValue((char *) "Luftdruck",bme.readPressure(),100,(char *) "Pa");
+    publishValue((char *) "Temperatur",bme.readTemperature(),1,(char *) "°C");
     publishValue((char *) "Luftfeuchte",bme.readHumidity(),1,(char *) "%");
     publishValue((char *) "Batterie",spannung,1,(char *) "V");
 }
 
 
+void publishValue(char* description,float value,float prefix,char* unit,char* topic){
+    snprintf(msg, msgLength, "{\"%s\":{\"v\":%f,\"p\":%e,\"u\":\"%s\"}}",description,value/prefix,prefix,unit); 
+    client.publish(topic, msg);
+    //Serial.println(msg);
+}
+
 void publishValue(char* description,float value,float prefix,char* unit){
-    snprintf(msg, msgLength, "{\"%s\":{\"v\":%04.4f,\"p\":%e,\"u\":\"%s\"}}",description,value,prefix,unit); 
     char topic[30];
     sniprintf(topic,30,"%s/%s",publishTopic,description);
-    client.publish(topic, msg);
-    Serial.println(msg);
+    publishValue(description,value,prefix,unit,topic);
 }
 
 void setup_wifi()
 {
     delay(10);
     Serial.println();
-    Serial.print("Connecting to ");
+    Serial.print("Verbinde Zu ");
     Serial.println(SSID);
 #if defined(staticIP) && defined(staticGateway) && defined(staticSubnet) && defined(staticDNS)
     IPAddress ip(staticIP);
@@ -110,7 +124,6 @@ void setup_wifi()
         delay(500);
         Serial.print(".");
     }
-
     Serial.println("");
     Serial.println("WiFi connected");
     Serial.println("IP address: ");

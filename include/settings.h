@@ -78,9 +78,15 @@
 #define bme280I2C 0x77
 
 /**
- * @brief Zeit zwischen den Sendungen in Microsekunden
+ * @brief Zeit zwischen den Sendungen in Millisekunden
  * 
  * angabe in minuten*60e6 möglich (z.B.: 5*60e6)
  */
-#define sleepTime 5*60e6
+#define sleepTime 5*60e3
 
+/**
+ * @brief Bezeihnung des Controllers
+ * 
+ * Wird benutzt als bezeichnung für MQTT und OTA
+ */
+#define hostName "Wetterstation"
