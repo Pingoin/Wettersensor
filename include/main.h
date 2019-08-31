@@ -16,6 +16,7 @@
 #include <Adafruit_BME280.h>
 #include <string.h>
 #include <ArduinoOTA.h>
+#include <esp8266httpclient.h>
 /**
  * @brief maximale Länge des Strings für den Nachrichtenaustausch
  * 
@@ -96,4 +97,16 @@ void bmeForceRead();
  * 
  */
 unsigned long previousMillis[1] = {0};
+
+/**
+ * @brief 
+ * 
+ * @return byte 
+ */
+byte checkOTA();
+/**
+ * @brief 
+ * 
+ */
+byte otaEnabled;
 #endif
