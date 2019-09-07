@@ -90,3 +90,9 @@
  * Wird benutzt als bezeichnung für MQTT und OTA
  */
 #define hostName "Wetterstation"
+
+/**
+ * @brief 
+ * 
+ */
+#define httpServerWiFi "http://192.168.178.110:1880/wettersensor"
