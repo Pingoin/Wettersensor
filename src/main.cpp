@@ -53,12 +53,14 @@ void loop()
         ArduinoOTA.handle();
     }else{
         sleepIn();
+        delay(sleepTime);
     }
 
 }
 
 void publishSensors()
 {
+    delay(200);
     float spannung = analogRead(A0) * 0.004883;
     publishValue((char *)"Luftdruck", bme.readPressure(), 100, 6, 4, (char *)"Pa");
     publishValue((char *)"Temperatur", bme.readTemperature(), 1, 6, 4, (char *)"°C");
