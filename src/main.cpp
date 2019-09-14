@@ -17,6 +17,9 @@
  */
 void setup()
 {
+     WiFi.mode( WIFI_OFF );
+  WiFi.forceSleepBegin();
+  delay( 1 );
     client.disconnect(); //eventuell vorhandene Alte Verbindung löschen
     Serial.begin(115200);
     setup_wifi();                                   //Wlan Starten
@@ -33,12 +36,13 @@ void setup()
     if (client.connect(hostName))
     {
         Serial.println("MQTT Verbindung erfolgreich");
-        if (otaEnabled)
+        /*if (otaEnabled)
         {
             client.subscribe(listenTopic);
             publishValue((char *)"Chip-ID", (float)ESP.getChipId(), 1, 6, 0, (char *)"-", (char *)listenTopic);
-        }
+        }*/
         publishSensors();
+        delay(100);
     }else{
         Serial.println("MQTT Verbindung nicht erfogreich");
     }
@@ -58,7 +62,10 @@ void setup()
     }
     else
     {
-        ESP.deepSleep(sleepTime * 1000);
+        WiFi.disconnect( true );
+        delay( 1 );
+        ESP.deepSleep(sleepTime * 1000, WAKE_RF_DISABLED );
+        delay(100);
     }
 }
 /**
@@ -91,7 +98,10 @@ void loop()
             previousMillis[0] = currentMillis;
         }
     }else{
-        ESP.deepSleep(sleepTime * 1000);
+        WiFi.disconnect( true );
+        delay( 1 );
+        ESP.deepSleep(sleepTime * 1000, WAKE_RF_DISABLED);
+        delay(100);
     }
 }
 
@@ -123,7 +133,13 @@ void publishValue(char *description, float value, float prefix, int width, int p
 
 void setup_wifi()
 {
-    delay(10);
+    	wifi_fpm_do_wakeup();
+	wifi_fpm_close();
+    WiFi.forceSleepWake();
+    delay( 1 );
+    // Disable the WiFi persistence.  The ESP8266 will not load and save WiFi settings in the flash memory.
+    WiFi.persistent( false );
+    WiFi.mode( WIFI_STA );
     Serial.println();
     Serial.print("Verbinde Zu ");
     Serial.println(SSID);
