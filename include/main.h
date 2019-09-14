@@ -23,6 +23,11 @@
  */
 #define msgLength 80
 /**
+ * @brief 
+ * 
+ */
+#define FPM_SLEEP_MAX_TIME 0xFFFFFFF
+/**
  * @brief Sensorklasse des BME280
  * 
  */
@@ -79,11 +84,6 @@ void publishValue(char* description,float value,float prefix,int width,int prec,
 void publishValue(char* description,float value,float prefix,int width,int prec,char* unit,char* topic);
 
 /**
- * @brief Start und einstellung der WLan-Verbindung
- * 
- */
-void setup_wifi();
-/**
  * @brief Erzwingt auslesen der Sensoren
  * 
  */
@@ -109,4 +109,27 @@ byte checkOTA();
  * 
  */
 byte otaEnabled;
+/**
+ * @brief 
+ * 
+ */
+void wakeUp();
+/**
+ * @brief 
+ * 
+ */
+void sleepIn();
+
+/**
+ * @brief 
+ * 
+ */
+byte isAsleep=true;
+/**
+ * @brief 
+ * 
+ */
+byte isFirstRun=true;
+
+
 #endif
