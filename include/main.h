@@ -8,6 +8,7 @@
  * @copyright Copyright (c) 2019
  * 
  */
+#pragma once
 #ifndef MAIN_H
 #define MAIN_H
 #include <ESP8266WiFi.h>
@@ -17,11 +18,12 @@
 #include <string.h>
 #include <ArduinoOTA.h>
 #include <esp8266httpclient.h>
+#include <user_interface.h>
 /**
  * @brief maximale Länge des Strings für den Nachrichtenaustausch
  * 
  */
-#define msgLength 80
+#define msgLength 255
 /**
  * @brief 
  * 
@@ -57,37 +59,6 @@ char msg[msgLength];
  * @param length Länge der Nachricht
  */
 void callback(char* topic, byte* payload, unsigned int length);
-/**
- * @brief Die Sensordaten werden ausgelesen und ausgegeben
- * 
- */
-void publishSensors();
-
-/**
- * @brief Sendet einen Wert mit einheit und prefix ins MQTT
- * 
- * @param description Bezeichnung der Größe, die gesendet werden soll
- * @param value der Wert (gekürzt um den prefix (z.B.: 1013 bei 1013 hPa))
- * @param prefix der Prefix als float (100 bei hPa)
- * @param unit die einheit ohne prefix (Pa)
- */
-void publishValue(char* description,float value,float prefix,int width,int prec,char* unit);
-
-/**
- * @brief Sendet einen Wert mit einheit und prefix ins MQTT
- * 
- * @param description Bezeichnung der Größe, die gesendet werden soll
- * @param value der Wert (gekürzt um den prefix (z.B.: 1013 bei 1013 hPa))
- * @param prefix der Prefix als float (100 bei hPa)
- * @param unit die einheit ohne prefix (Pa)
- */
-void publishValue(char* description,float value,float prefix,int width,int prec,char* unit,char* topic);
-
-/**
- * @brief Erzwingt auslesen der Sensoren
- * 
- */
-void bmeForceRead();
 
 /**
  * @brief Zeitpunkte der Letzten Ausführung Bestimmter Aktionen
@@ -99,7 +70,7 @@ void bmeForceRead();
 unsigned long previousMillis[1] = {0};
 
 /**
- * @brief 
+ * @brief Liest den gewünschten Status d
  * 
  * @return byte 
  */
@@ -108,28 +79,24 @@ byte checkOTA();
  * @brief 
  * 
  */
-byte otaEnabled;
-/**
- * @brief 
- * 
- */
-void wakeUp();
-/**
- * @brief 
- * 
- */
-void sleepIn();
+byte otaEnabled=false;
+byte sensorsConnected=false;
 
 /**
  * @brief 
  * 
  */
-byte isAsleep=true;
-/**
- * @brief 
- * 
- */
-byte isFirstRun=true;
+float temperature_degC=0;
+float pressure_Pa=0;
+float humidity=0;
+float voltage_V=0;
+void readSensors();
+void sendData();
 
+float voltageMesure();
 
+#define vFactor0 0
+#define vFactor1 4.9325e-3
+#define vFactor2 0
+#define vFactor3 0
 #endif

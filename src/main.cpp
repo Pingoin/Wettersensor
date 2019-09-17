@@ -17,33 +17,62 @@
  */
 void setup()
 {
-     WiFi.mode( WIFI_OFF );
-  WiFi.forceSleepBegin();
-  delay( 1 );
-    client.disconnect(); //eventuell vorhandene Alte Verbindung löschen
     Serial.begin(115200);
-    setup_wifi();                                   //Wlan Starten
+    WiFi.mode(WIFI_OFF);
+    WiFi.forceSleepBegin();
+    delay(1);
+    client.disconnect(); //eventuell vorhandene Alte Verbindung löschen
+    //Wifi definieren
+    WiFi.forceSleepWake();
+    delay(100);
+
+    // Disable the WiFi persistence.  The ESP8266 will not load and save WiFi settings in the flash memory.
+    WiFi.persistent(false);
+    WiFi.mode(WIFI_STA);
+#if defined(staticIP) && defined(staticGateway) && defined(staticSubnet) && defined(staticDNS)
+    IPAddress ip(staticIP);
+    IPAddress gateway(staticGateway);
+    IPAddress subnet(staticSubnet);
+    IPAddress dns(staticDNS);
+    WiFi.config(ip, dns, gateway, subnet);
+#endif
+    WiFi.begin(SSID, PSK); //Wifi Starten
+    //Sensoren lesen
+    Wire.begin();
+    if (bme.begin(bme280I2C))
+    {
+        bme.setSampling(Adafruit_BME280::MODE_FORCED,
+                        Adafruit_BME280::SAMPLING_X1, // temperature
+                        Adafruit_BME280::SAMPLING_X1, // pressure
+                        Adafruit_BME280::SAMPLING_X1, // humidity
+                        Adafruit_BME280::FILTER_OFF);
+        readSensors();
+        sensorsConnected = true;
+    }
+    //Auf Wifi Warten
+    while (WiFi.status() != WL_CONNECTED)
+    {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+
+    otaEnabled = checkOTA(); //Überprüfung, ob wifi an bleiben soll
+
+    Serial.println(msg);
     client.setServer(IPAddress(MQTT_BROKER), 1883); //MQTT-Server definieren
     client.setCallback(callback);                   //Funktion definieren, die aufgerufen wird, wenn eine abbonierte nachricht ankommt
-    Wire.begin();
-    if (!bme.begin(bme280I2C))
-    {
-        Serial.println("Could not find a valid BME280 sensor, check wiring!");
-        while (1)
-            ;
-    }
+
     if (client.connect(hostName))
     {
-        Serial.println("MQTT Verbindung erfolgreich");
-        /*if (otaEnabled)
-        {
-            client.subscribe(listenTopic);
-            publishValue((char *)"Chip-ID", (float)ESP.getChipId(), 1, 6, 0, (char *)"-", (char *)listenTopic);
-        }*/
-        publishSensors();
-        delay(100);
-    }else{
-        Serial.println("MQTT Verbindung nicht erfogreich");
+        Serial.println("MQTT verbunden");
+        //client.publish(publishTopic, msg);
+        sendData();
+        Serial.printf("%s gesendet in Topic: %s \n", msg, publishTopic);
+        Serial.println("MQTT gesendet");
     }
 
     if (otaEnabled)
@@ -61,9 +90,10 @@ void setup()
     }
     else
     {
-        WiFi.disconnect( true );
-        delay( 1 );
-        ESP.deepSleep(sleepTime * 1000, WAKE_RF_DISABLED );
+
+        WiFi.disconnect(true);
+        delay(1);
+        ESP.deepSleep(sleepTime * 1000, WAKE_RF_DISABLED);
         delay(100);
     }
 }
@@ -75,89 +105,28 @@ void loop()
 {
     unsigned long currentMillis = millis();
     // if enough millis have elapsed
-    if ((currentMillis - previousMillis[0] >= sleepTime) || isFirstRun)
-    {   
-        if (isAsleep){
-            wakeUp();
-        }else{
+    if ((currentMillis - previousMillis[0] >= sleepTime))
+    {
         otaEnabled = checkOTA();
+        if (sensorsConnected)
+        {
+            readSensors();
         }
-
-        publishSensors();
-        delay(100);
-        isFirstRun=false;
+        sendData();
         previousMillis[0] = currentMillis;
     }
     if (otaEnabled)
     {
         client.loop();
         ArduinoOTA.handle();
-    }else{
-        WiFi.disconnect( true );
-        delay( 1 );
+    }
+    else
+    {
+        WiFi.disconnect(true);
+        delay(1);
         ESP.deepSleep(sleepTime * 1000, WAKE_RF_DISABLED);
         delay(100);
     }
-
-}
-
-void publishSensors()
-{
-    delay(200);
-    float spannung = analogRead(A0) * 0.004883;
-    publishValue((char *)"Luftdruck", bme.readPressure(), 100, 6, 4, (char *)"Pa");
-    publishValue((char *)"Temperatur", bme.readTemperature(), 1, 6, 4, (char *)"°C");
-    publishValue((char *)"Luftfeuchte", bme.readHumidity(), 1, 6, 4, (char *)"%");
-    publishValue((char *)"Batterie", spannung, 1, 6, 4, (char *)"V");
-    publishValue((char *)"OTAStatus", (float) otaEnabled, 1, 1, 0, (char *)"-");
-}
-
-void publishValue(char *description, float value, float prefix, int width, int prec, char *unit, char *topic)
-{
-    char tmpChar[10];
-    dtostrf(value / prefix, width, prec, tmpChar);
-    snprintf(msg, msgLength, "{\"%s\":{\"v\":%s,\"p\":%.3e,\"u\":\"%s\"}}", description, tmpChar, prefix, unit);
-    client.publish(topic, msg);
-    Serial.println(msg);
-}
-
-void publishValue(char *description, float value, float prefix, int width, int prec, char *unit)
-{
-    char topic[30];
-    sniprintf(topic, 30, "%s/%s", publishTopic, description);
-    publishValue(description, value, prefix, width, prec, unit, topic);
-}
-
-void setup_wifi()
-{
-    	wifi_fpm_do_wakeup();
-	wifi_fpm_close();
-    WiFi.forceSleepWake();
-    delay( 1 );
-    // Disable the WiFi persistence.  The ESP8266 will not load and save WiFi settings in the flash memory.
-    WiFi.persistent( false );
-    WiFi.mode( WIFI_STA );
-    Serial.println();
-    Serial.print("Verbinde Zu ");
-    Serial.println(SSID);
-#if defined(staticIP) && defined(staticGateway) && defined(staticSubnet) && defined(staticDNS)
-    IPAddress ip(staticIP);
-    IPAddress gateway(staticGateway);
-    IPAddress subnet(staticSubnet);
-    IPAddress dns(staticDNS);
-    WiFi.config(ip, dns, gateway, subnet);
-#endif
-    WiFi.begin(SSID, PSK);
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
@@ -172,7 +141,12 @@ void callback(char *topic, byte *payload, unsigned int length)
     memcpy(p, payload, length);
     if ((strcasecmp(topic, listenTopic) == 0) && memcmp(p, "send", length) == 0)
     { //anpassen
-        publishSensors();
+        otaEnabled = checkOTA();
+        if (sensorsConnected)
+        {
+            readSensors();
+        }
+        sendData();
     }
     // Free the memory
     free(p);
@@ -181,87 +155,53 @@ void callback(char *topic, byte *payload, unsigned int length)
 byte checkOTA()
 {
     HTTPClient http;
-    if(http.begin(httpServerWiFi)){
-    http.GET();
-    String s = http.getString();
-    char payload[s.length() + 1];
-    strcpy(payload, s.c_str()); // or pass &s[0]
-    byte tmp = strcasecmp((char *)payload, "true");
-    return (tmp == 0);
-    }else{
+    if (http.begin(ethClient, httpServerWiFi))
+    {
+        http.GET();
+        String s = http.getString();
+        char payload[s.length() + 1];
+        strcpy(payload, s.c_str()); // or pass &s[0]
+        byte tmp = strcasecmp((char *)payload, "true");
+        return (tmp == 0);
+    }
+    else
+    {
         return 1;
     }
 }
 
-void wakeUp(){
-    wifi_fpm_do_wakeup();
-    wifi_fpm_close();
-
-    //Serial.println("Reconnecting");
-    wifi_set_opmode(STATION_MODE);
-    wifi_station_connect();
-
-    Serial.println();
-    Serial.print("Verbinde Zu ");
-    Serial.println(SSID);
-#if defined(staticIP) && defined(staticGateway) && defined(staticSubnet) && defined(staticDNS)
-    IPAddress ip(staticIP);
-    IPAddress gateway(staticGateway);
-    IPAddress subnet(staticSubnet);
-    IPAddress dns(staticDNS);
-    WiFi.config(ip, dns, gateway, subnet);
-#endif
-    WiFi.begin(SSID, PSK);
-
-    while (WiFi.status() != WL_CONNECTED)
-    {
-        delay(500);
-        Serial.print(".");
-    }
-    Serial.println("");
-    Serial.println("WiFi connected");
-    Serial.println("IP address: ");
-    Serial.println(WiFi.localIP());
-
-
-    otaEnabled = checkOTA();
-
-
-    if (client.connect(hostName))
-    {
-        Serial.println("MQTT Verbindung erfolgreich");
-        if (otaEnabled)
-        {
-            client.subscribe(listenTopic);
-            publishValue((char *)"Chip-ID", (float)ESP.getChipId(), 1, 6, 0, (char *)"-", (char *)listenTopic);
-        }
-    }else{
-        Serial.println("MQTT Verbindung nicht erfogreich");
-    }
-    if (otaEnabled)
-    {
-        // Port defaults to 8266
-        // ArduinoOTA.setPort(8266);
-
-        // Hostname defaults to esp8266-[ChipID]
-        ArduinoOTA.setHostname(hostName);
-
-        // No authentication by default
-        ArduinoOTA.setPassword((const char *)hostName);
-
-        ArduinoOTA.begin();
-
-    }
-    isAsleep=false;
+void readSensors()
+{
+    bme.takeForcedMeasurement();
+    delay(15);
+    temperature_degC = bme.readTemperature();
+    pressure_Pa = bme.readPressure();
+    humidity = bme.readHumidity();
 }
 
-void sleepIn(){
+void sendData()
+{
+    snprintf(msg, msgLength, "{"
+                             "\"Luftfeuchte\": {\"v\":%3.4f,\"u\":\"%%\"},"
+                             "\"Luftdruck\": {\"v\":%4.4f,\"u\":\"hPa\"},"
+                             "\"Temperatur\": {\"v\":%2.4f,\"u\":\"°C\"},"
+                             "\"Batterie\": {\"v\":%2.4f,\"u\":\"V\"},"
+                             "\"OTA-Status\": {\"v\":%1u,\"u\":\"-\"}"
+                             "}",
+             humidity, pressure_Pa / 100, temperature_degC, voltageMesure(), otaEnabled);
+    Serial.printf("Stringlänge: %d;\n zeichen nach länge:%d", strlen(msg), msg[strlen(msg) - 1]);
+    client.beginPublish(publishTopic, strlen(msg), false);
+    for (byte i = 0; i < strlen(msg); i++)
+    {
+        client.write(msg[i]);
+        yield();
+    }
+    Serial.println("");
+    client.endPublish();
+    delay(100);
+}
 
-    isAsleep=true;
-    wifi_station_disconnect();
-    wifi_set_opmode(NULL_MODE);
-    wifi_set_sleep_type(MODEM_SLEEP_T);
-    wifi_fpm_open();
-    wifi_fpm_do_sleep(FPM_SLEEP_MAX_TIME);
-
+float voltageMesure(){
+    float adc=(float) analogRead(A0);
+    return vFactor3*pow(adc,3)+vFactor2*pow(adc,3) + vFactor1*adc+vFactor0;
 }

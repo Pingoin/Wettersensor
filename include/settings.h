@@ -96,3 +96,9 @@
  * 
  */
 #define httpServerWiFi "http://192.168.178.110:1880/wettersensor"
+
+/**
+ * @brief Faktor für Spannugnsberechnung
+ * 
+ */
+#define analogFactor 1 //0.00478125
