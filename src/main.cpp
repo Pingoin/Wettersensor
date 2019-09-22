@@ -22,6 +22,18 @@ void setup()
     WiFi.forceSleepBegin();
     delay(1);
     client.disconnect(); //eventuell vorhandene Alte Verbindung löschen
+    humidity = doc.createNestedObject("Luftfeuchte");
+    pressure = doc.createNestedObject("Luftdruck");
+    temperature = doc.createNestedObject("Temperatur");
+    battery = doc.createNestedObject("Batterie");
+    otaStatus = doc.createNestedObject("OTA-Status");
+    humidity["u"] = "%";
+    pressure["u"] = "hPa";
+    temperature["u"] = "°C";
+    battery["u"] = "V";
+    otaStatus["u"] = "-";
+
+
     //Wifi definieren
     WiFi.forceSleepWake();
     delay(100);
@@ -152,7 +164,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     free(p);
 }
 
-byte checkOTA()
+boolean checkOTA()
 {
     HTTPClient http;
     if (http.begin(ethClient, httpServerWiFi))
@@ -166,7 +178,7 @@ byte checkOTA()
     }
     else
     {
-        return 1;
+        return true;
     }
 }
 
@@ -174,21 +186,16 @@ void readSensors()
 {
     bme.takeForcedMeasurement();
     delay(15);
-    temperature_degC = bme.readTemperature();
-    pressure_Pa = bme.readPressure();
-    humidity = bme.readHumidity();
+    temperature["v"] = bme.readTemperature();
+    pressure["v"] = bme.readPressure() / 100;
+    humidity["v"] = bme.readHumidity();  
 }
 
 void sendData()
-{
-    snprintf(msg, msgLength, "{"
-                             "\"Luftfeuchte\": {\"v\":%3.4f,\"u\":\"%%\"},"
-                             "\"Luftdruck\": {\"v\":%4.4f,\"u\":\"hPa\"},"
-                             "\"Temperatur\": {\"v\":%2.4f,\"u\":\"°C\"},"
-                             "\"Batterie\": {\"v\":%2.4f,\"u\":\"V\"},"
-                             "\"OTA-Status\": {\"v\":%1u,\"u\":\"-\"}"
-                             "}",
-             humidity, pressure_Pa / 100, temperature_degC, voltageMesure(), otaEnabled);
+{   
+    battery["v"] = voltageMesure();
+    otaStatus["v"] = otaEnabled;
+    serializeJson(doc, msg);
     Serial.printf("Stringlänge: %d;\n zeichen nach länge:%d", strlen(msg), msg[strlen(msg) - 1]);
     client.beginPublish(publishTopic, strlen(msg), false);
     for (byte i = 0; i < strlen(msg); i++)
@@ -201,7 +208,8 @@ void sendData()
     delay(100);
 }
 
-float voltageMesure(){
-    float adc=(float) analogRead(A0);
-    return vFactor3*pow(adc,3)+vFactor2*pow(adc,3) + vFactor1*adc+vFactor0;
+float voltageMesure()
+{
+    float adc = (float)analogRead(A0);
+    return vFactor3 * pow(adc, 3) + vFactor2 * pow(adc, 3) + vFactor1 * adc + vFactor0;
 }

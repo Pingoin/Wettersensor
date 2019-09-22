@@ -19,6 +19,7 @@
 #include <ArduinoOTA.h>
 #include <esp8266httpclient.h>
 #include <user_interface.h>
+#include <ArduinoJson.h>
 /**
  * @brief maximale Länge des Strings für den Nachrichtenaustausch
  * 
@@ -74,22 +75,18 @@ unsigned long previousMillis[1] = {0};
  * 
  * @return byte 
  */
-byte checkOTA();
+boolean checkOTA();
 /**
  * @brief 
  * 
  */
-byte otaEnabled=false;
-byte sensorsConnected=false;
+boolean otaEnabled=false;
+boolean sensorsConnected=false;
 
 /**
  * @brief 
  * 
  */
-float temperature_degC=0;
-float pressure_Pa=0;
-float humidity=0;
-float voltage_V=0;
 void readSensors();
 void sendData();
 
@@ -99,4 +96,12 @@ float voltageMesure();
 #define vFactor1 4.9325e-3
 #define vFactor2 0
 #define vFactor3 0
+
+  StaticJsonDocument<255> doc;
+  JsonObject humidity;
+  JsonObject pressure;
+  JsonObject temperature;
+  JsonObject battery;
+  JsonObject otaStatus;
+
 #endif
