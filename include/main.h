@@ -20,6 +20,7 @@
 #include <esp8266httpclient.h>
 #include <user_interface.h>
 #include <ArduinoJson.h>
+#include <ads111x.h>
 /**
  * @brief maximale Länge des Strings für den Nachrichtenaustausch
  * 
@@ -90,18 +91,21 @@ boolean sensorsConnected=false;
 void readSensors();
 void sendData();
 
+ADS1115 ads(0x48); 	
+
 float voltageMesure();
 
 #define vFactor0 0
-#define vFactor1 4.9325e-3
+#define vFactor1 4.9325e-3 
 #define vFactor2 0
 #define vFactor3 0
-
+  StaticJsonDocument<256> incomeDoc;
   StaticJsonDocument<255> doc;
   JsonObject humidity;
   JsonObject pressure;
   JsonObject temperature;
   JsonObject battery;
+  JsonObject powerSupply;
   JsonObject otaStatus;
 
 #endif

@@ -8,17 +8,18 @@
  * @copyright Copyright (c) 2019
  * 
  */
+#include <private.h>
 
 /**
  * @brief Netzwerk SSID
  */
-#define SSID "Brokkoli_Extrem"
+#define SSID mySSID
 
 /**
  * @brief WPA-Passwort
  * 
  */
-#define PSK "1123581321345589144233"
+#define PSK myPSK
 
 /**
  * @brief Adresse des MQTT-Brokers
@@ -75,7 +76,7 @@
  * @brief i2CAdresse des BME280
  * 
  */
-#define bme280I2C 0x77
+#define bme280I2C 0x76
 
 /**
  * @brief Zeit zwischen den Sendungen in Millisekunden

@@ -59,3 +59,5 @@ build
 .vscode
 search
 html
+/lib
+/include/private.h

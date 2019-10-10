@@ -26,11 +26,13 @@ void setup()
     pressure = doc.createNestedObject("Luftdruck");
     temperature = doc.createNestedObject("Temperatur");
     battery = doc.createNestedObject("Batterie");
+    powerSupply = doc.createNestedObject("PowerSupply");
     otaStatus = doc.createNestedObject("OTA-Status");
     humidity["u"] = "%";
     pressure["u"] = "hPa";
     temperature["u"] = "°C";
     battery["u"] = "V";
+    powerSupply["u"] = "V";
     otaStatus["u"] = "-";
 
 
@@ -51,6 +53,8 @@ void setup()
     WiFi.begin(SSID, PSK); //Wifi Starten
     //Sensoren lesen
     Wire.begin();
+    ads.setGain(FSR4096);
+
     if (bme.begin(bme280I2C))
     {
         bme.setSampling(Adafruit_BME280::MODE_FORCED,
@@ -139,29 +143,12 @@ void loop()
         ESP.deepSleep(sleepTime * 1000, WAKE_RF_DISABLED);
         delay(100);
     }
+    delay(500);
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    // In order to republish this payload, a copy must be made
-    // as the orignal payload buffer will be overwritten whilst
-    // constructing the PUBLISH packet.
-
-    // Allocate the correct amount of memory for the payload copy
-    byte *p = (byte *)malloc(length);
-    // Copy the payload to the new buffer
-    memcpy(p, payload, length);
-    if ((strcasecmp(topic, listenTopic) == 0) && memcmp(p, "send", length) == 0)
-    { //anpassen
-        otaEnabled = checkOTA();
-        if (sensorsConnected)
-        {
-            readSensors();
-        }
-        sendData();
-    }
-    // Free the memory
-    free(p);
+    deserializeJson(incomeDoc, payload, length);
 }
 
 boolean checkOTA()
@@ -182,8 +169,11 @@ boolean checkOTA()
     }
 }
 
+
 void readSensors()
 {
+    battery["v"] = ads.readVoltage(A0GND,181,333);
+    powerSupply["v"] = ads.readVoltage(A1GND);
     bme.takeForcedMeasurement();
     delay(15);
     temperature["v"] = bme.readTemperature();
@@ -193,11 +183,10 @@ void readSensors()
 
 void sendData()
 {   
-    battery["v"] = voltageMesure();
     otaStatus["v"] = otaEnabled;
     serializeJson(doc, msg);
     Serial.printf("Stringlänge: %d;\n zeichen nach länge:%d", strlen(msg), msg[strlen(msg) - 1]);
-    client.beginPublish(publishTopic, strlen(msg), false);
+    client.beginPublish(publishTopic, strlen(msg), true);
     for (byte i = 0; i < strlen(msg); i++)
     {
         client.write(msg[i]);
