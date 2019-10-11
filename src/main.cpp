@@ -26,7 +26,7 @@ void setup()
     pressure = doc.createNestedObject("Luftdruck");
     temperature = doc.createNestedObject("Temperatur");
     battery = doc.createNestedObject("Batterie");
-    powerSupply = doc.createNestedObject("PowerSupply");
+    powerSupply = doc.createNestedObject("Power");
     otaStatus = doc.createNestedObject("OTA-Status");
     humidity["u"] = "%";
     pressure["u"] = "hPa";

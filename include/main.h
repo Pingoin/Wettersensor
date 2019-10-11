@@ -99,8 +99,8 @@ float voltageMesure();
 #define vFactor1 4.9325e-3 
 #define vFactor2 0
 #define vFactor3 0
-  StaticJsonDocument<256> incomeDoc;
-  StaticJsonDocument<255> doc;
+  StaticJsonDocument<255> incomeDoc;
+  StaticJsonDocument<300> doc;
   JsonObject humidity;
   JsonObject pressure;
   JsonObject temperature;
