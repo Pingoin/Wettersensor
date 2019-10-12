@@ -108,4 +108,15 @@ float voltageMesure();
   JsonObject powerSupply;
   JsonObject otaStatus;
 
+  // The ESP8266 RTC memory is arranged into blocks of 4 bytes. The access methods read and write 4 bytes at a time,
+// so the RTC data structure should be padded to a 4-byte multiple.
+struct {
+  uint32_t crc32;   // 4 bytes
+  uint8_t channel;  // 1 byte,   5 in total
+  uint8_t ap_mac[6]; // 6 bytes, 11 in total
+  uint8_t padding;  // 1 byte,  12 in total
+} rtcData;
+
+uint32_t calculateCRC32( const uint8_t *data, size_t length );
+
 #endif
